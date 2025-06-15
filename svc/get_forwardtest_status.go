@@ -61,10 +61,7 @@ func (wf *workflows) GetForwardtestStatusWorkflow(
 					fmt.Errorf("could not get candlesticks from service: %w", err)
 			}
 
-			c, ok := csRes.List.Last()
-			if !ok {
-				return api.GetForwardtestStatusWorkflowResults{}, fmt.Errorf("%w: %s", ErrNoActualPrice, p)
-			}
+			c := csRes.List[len(csRes.List)-1]
 
 			// Calculate value
 			total += balance * c.Close
