@@ -50,10 +50,7 @@ func (wf *workflows) CreateForwardtestOrderWorkflow(
 			fmt.Errorf("could not get candlesticks from service: %w", err)
 	}
 
-	cs, ok := csRes.List.First()
-	if !ok {
-		return api.CreateForwardtestOrderWorkflowResults{}, fmt.Errorf("no data for order validation")
-	}
+	cs := csRes.List[0]
 
 	logger.Info("Adding order to forwardtest",
 		"order", params.Order,
