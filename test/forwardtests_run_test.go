@@ -51,7 +51,7 @@ func (r *testRunner) OnInit(ctx workflow.Context, params runtime.OnInitCallbackW
 func (r *testRunner) OnNewPrices(_ workflow.Context, params runtime.OnNewPricesCallbackWorkflowParams) error {
 	checkForwardtestRunContext(r.Suite, params.Context, r.ForwardtestID)
 
-	// TODO: test order passing in OnNewPrices
+	// TODO(#6): test order passing in OnNewPrices
 
 	r.OnNewPricesCalls++
 	return nil
