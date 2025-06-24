@@ -87,6 +87,60 @@ services:
     networks:
       - cryptellation-forwardtests
 
+  exchanges-migrator:
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    image: ghcr.io/cryptellation/exchanges
+    command: ["worker", "database", "migrate"]
+    environment:
+      SQL_DSN: "host=postgresql user=cryptellation_exchanges password=cryptellation_exchanges dbname=cryptellation_exchanges sslmode=disable"
+    networks:
+      - cryptellation-forwardtests
+  exchanges-worker:
+    image: ghcr.io/cryptellation/exchanges
+    depends_on:
+      temporal:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
+    environment:
+      SQL_DSN: "host=postgresql user=cryptellation_exchanges password=cryptellation_exchanges dbname=cryptellation_exchanges sslmode=disable"
+      TEMPORAL_ADDRESS: temporal:7233
+    env_file:
+      - path: ../../.credentials.env
+        required: true
+    command: ["worker", "serve"]
+    networks:
+      - cryptellation-forwardtests
+
+  ticks-migrator:
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    image: ghcr.io/cryptellation/ticks
+    command: ["worker", "database", "migrate"]
+    environment:
+      SQL_DSN: "host=postgresql user=cryptellation_ticks password=cryptellation_ticks dbname=cryptellation_ticks sslmode=disable"
+    networks:
+      - cryptellation-forwardtests
+  ticks-worker:
+    image: ghcr.io/cryptellation/ticks
+    depends_on:
+      temporal:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
+    environment:
+      SQL_DSN: "host=postgresql user=cryptellation_ticks password=cryptellation_ticks dbname=cryptellation_ticks sslmode=disable"
+      TEMPORAL_ADDRESS: temporal:7233
+    env_file:
+      - path: ../../.credentials.env
+        required: true
+    command: ["worker", "serve"]
+    networks:
+      - cryptellation-forwardtests
+
   migrator:
     depends_on:
       postgresql:

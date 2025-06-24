@@ -7,9 +7,28 @@ import (
 	"context"
 
 	"github.com/cryptellation/forwardtests/api"
+	"github.com/cryptellation/runtime"
 	"github.com/cryptellation/runtime/account"
 	"github.com/cryptellation/runtime/order"
 )
+
+// createTestCallbacks creates test callbacks for testing
+func createTestCallbacks() runtime.Callbacks {
+	return runtime.Callbacks{
+		OnInitCallback: runtime.CallbackWorkflow{
+			Name:          "test-init-workflow",
+			TaskQueueName: "test-queue",
+		},
+		OnNewPricesCallback: runtime.CallbackWorkflow{
+			Name:          "test-prices-workflow",
+			TaskQueueName: "test-queue",
+		},
+		OnExitCallback: runtime.CallbackWorkflow{
+			Name:          "test-exit-workflow",
+			TaskQueueName: "test-queue",
+		},
+	}
+}
 
 func (suite *EndToEndSuite) TestGetForwardtestStatus() {
 	// GIVEN a forwardtest
@@ -22,6 +41,7 @@ func (suite *EndToEndSuite) TestGetForwardtestStatus() {
 				},
 			},
 		},
+		Callbacks: createTestCallbacks(),
 	}
 	ft, err := suite.client.NewForwardtest(context.Background(), params)
 	suite.Require().NoError(err)
@@ -47,6 +67,7 @@ func (suite *EndToEndSuite) TestListForwardtestStatus() {
 				},
 			},
 		},
+		Callbacks: createTestCallbacks(),
 	}
 	ft1, err := suite.client.NewForwardtest(context.Background(), params)
 	suite.Require().NoError(err)
@@ -78,6 +99,7 @@ func (suite *EndToEndSuite) TestCreateOrder() {
 				},
 			},
 		},
+		Callbacks: createTestCallbacks(),
 	}
 	ft, err := suite.client.NewForwardtest(context.Background(), params)
 	suite.Require().NoError(err)
@@ -99,4 +121,45 @@ func (suite *EndToEndSuite) TestCreateOrder() {
 	suite.Require().NoError(err)
 	suite.Require().Equal(1.0, accounts["binance"].Balances["BTC"])
 	suite.Require().NotEqual(1000000.0, accounts["binance"].Balances["USDT"])
+}
+
+func (suite *EndToEndSuite) TestListForwardtestAccounts() {
+	// GIVEN a forwardtest with multiple accounts
+
+	params := api.CreateForwardtestWorkflowParams{
+		Accounts: map[string]account.Account{
+			"binance": {
+				Balances: map[string]float64{
+					"USDT": 1000,
+					"BTC":  0.5,
+				},
+			},
+			"kucoin": {
+				Balances: map[string]float64{
+					"USDT": 2000,
+					"ETH":  2.0,
+				},
+			},
+		},
+		Callbacks: createTestCallbacks(),
+	}
+	ft, err := suite.client.NewForwardtest(context.Background(), params)
+	suite.Require().NoError(err)
+
+	// WHEN listing the accounts
+
+	accounts, err := ft.ListAccounts(context.Background())
+	suite.Require().NoError(err)
+
+	// THEN all accounts and balances are returned correctly
+
+	suite.Require().Len(accounts, 2)
+
+	// Check Binance account
+	suite.Require().Equal(1000.0, accounts["binance"].Balances["USDT"])
+	suite.Require().Equal(0.5, accounts["binance"].Balances["BTC"])
+
+	// Check KuCoin account
+	suite.Require().Equal(2000.0, accounts["kucoin"].Balances["USDT"])
+	suite.Require().Equal(2.0, accounts["kucoin"].Balances["ETH"])
 }

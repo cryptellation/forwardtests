@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/cryptellation/forwardtests/pkg/forwardtest"
+	"github.com/cryptellation/runtime"
 	"github.com/cryptellation/runtime/account"
 	"github.com/cryptellation/runtime/order"
 	"github.com/google/uuid"
@@ -9,7 +10,7 @@ import (
 
 const (
 	// WorkerTaskQueueName is the name of the task queue for the cryptellation worker.
-	WorkerTaskQueueName = "CryptellationforwardtestsTaskQueue"
+	WorkerTaskQueueName = "CryptellationForwardtestsTaskQueue"
 )
 
 // CreateForwardtestWorkflowName is the name of the CreateForwardtestWorkflow.
@@ -18,7 +19,8 @@ const CreateForwardtestWorkflowName = "CreateForwardtestWorkflow"
 type (
 	// CreateForwardtestWorkflowParams is the input for the CreateForwardtestWorkflow.
 	CreateForwardtestWorkflowParams struct {
-		Accounts map[string]account.Account
+		Accounts  map[string]account.Account
+		Callbacks runtime.Callbacks
 	}
 
 	// CreateForwardtestWorkflowResults is the output for the CreateForwardtestWorkflow.
@@ -84,6 +86,19 @@ type (
 	}
 )
 
+// StartForwardtestWorkflowName is the name of the StartForwardtestWorkflow.
+const StartForwardtestWorkflowName = "StartForwardtestWorkflow"
+
+type (
+	// StartForwardtestWorkflowParams is the input for the StartForwardtestWorkflow.
+	StartForwardtestWorkflowParams struct {
+		ForwardtestID uuid.UUID
+	}
+
+	// StartForwardtestWorkflowResults is the output for the StartForwardtestWorkflow.
+	StartForwardtestWorkflowResults struct{}
+)
+
 const (
 	// ServiceInfoWorkflowName is the name of the workflow to get the service info.
 	ServiceInfoWorkflowName = "ServiceInfoWorkflow"
@@ -97,4 +112,33 @@ type (
 	ServiceInfoResults struct {
 		Version string
 	}
+)
+
+// StopForwardtestWorkflowName is the name of the StopForwardtestWorkflow.
+const StopForwardtestWorkflowName = "StopForwardtestWorkflow"
+
+type (
+	// StopForwardtestWorkflowParams is the input for the StopForwardtestWorkflow.
+	StopForwardtestWorkflowParams struct {
+		ForwardtestID uuid.UUID
+	}
+
+	// StopForwardtestWorkflowResults is the output for the StopForwardtestWorkflow.
+	StopForwardtestWorkflowResults struct{}
+)
+
+// SubscribeToPriceWorkflowName is the name of the SubscribeToPriceWorkflow.
+const SubscribeToPriceWorkflowName = "SubscribeToPriceWorkflow"
+
+type (
+	// SubscribeToPriceWorkflowParams is the input for the SubscribeToPriceWorkflow.
+	SubscribeToPriceWorkflowParams struct {
+		ForwardtestID   uuid.UUID
+		OnPriceCallback runtime.CallbackWorkflow
+		Exchange        string
+		Pair            string
+	}
+
+	// SubscribeToPriceWorkflowResults is the output for the SubscribeToPriceWorkflow.
+	SubscribeToPriceWorkflowResults struct{}
 )

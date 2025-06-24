@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/cryptellation/forwardtests/pkg/forwardtest"
+	"github.com/cryptellation/runtime"
 	"github.com/cryptellation/runtime/account"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
@@ -14,6 +15,24 @@ import (
 type ForwardtestSuite struct {
 	suite.Suite
 	DB DB
+}
+
+// createTestCallbacks creates test callbacks for testing.
+func createTestCallbacks() runtime.Callbacks {
+	return runtime.Callbacks{
+		OnInitCallback: runtime.CallbackWorkflow{
+			Name:          "test-init-workflow",
+			TaskQueueName: "test-queue",
+		},
+		OnNewPricesCallback: runtime.CallbackWorkflow{
+			Name:          "test-prices-workflow",
+			TaskQueueName: "test-queue",
+		},
+		OnExitCallback: runtime.CallbackWorkflow{
+			Name:          "test-exit-workflow",
+			TaskQueueName: "test-queue",
+		},
+	}
 }
 
 // TestCreateReadForwardtestActivities tests the create and read operations.
@@ -27,6 +46,7 @@ func (suite *ForwardtestSuite) TestCreateReadForwardtestActivities() {
 				},
 			},
 		},
+		Callbacks: createTestCallbacks(),
 	}
 	_, err := suite.DB.CreateForwardtestActivity(context.Background(), CreateForwardtestActivityParams{
 		Forwardtest: ft,
@@ -43,6 +63,7 @@ func (suite *ForwardtestSuite) TestCreateReadForwardtestActivities() {
 	suite.Require().Equal(
 		ft.Accounts["exchange"].Balances["DAI"],
 		rp.Forwardtest.Accounts["exchange"].Balances["DAI"])
+	suite.Require().Equal(ft.Callbacks, rp.Forwardtest.Callbacks)
 }
 
 // TestListForwardtestsActivity tests the list operation.
@@ -56,6 +77,7 @@ func (suite *ForwardtestSuite) TestListForwardtestsActivity() {
 				},
 			},
 		},
+		Callbacks: createTestCallbacks(),
 	}
 	_, err := suite.DB.CreateForwardtestActivity(context.Background(), CreateForwardtestActivityParams{
 		Forwardtest: ft1,
@@ -70,6 +92,7 @@ func (suite *ForwardtestSuite) TestListForwardtestsActivity() {
 				},
 			},
 		},
+		Callbacks: createTestCallbacks(),
 	}
 	_, err = suite.DB.CreateForwardtestActivity(context.Background(), CreateForwardtestActivityParams{
 		Forwardtest: ft2,
@@ -96,6 +119,7 @@ func (suite *ForwardtestSuite) TestUpdateForwardtestActivity() {
 				},
 			},
 		},
+		Callbacks: createTestCallbacks(),
 	}
 	_, err := suite.DB.CreateForwardtestActivity(context.Background(), CreateForwardtestActivityParams{
 		Forwardtest: ft1,
@@ -119,6 +143,7 @@ func (suite *ForwardtestSuite) TestUpdateForwardtestActivity() {
 				},
 			},
 		},
+		Callbacks: createTestCallbacks(),
 	}
 	_, err = suite.DB.UpdateForwardtestActivity(context.Background(), UpdateForwardtestActivityParams{
 		Forwardtest: ft2,
@@ -139,6 +164,7 @@ func (suite *ForwardtestSuite) TestUpdateForwardtestActivity() {
 	suite.Require().Equal(
 		ft2.Accounts["exchange2"].Balances["USDC"],
 		rp2.Forwardtest.Accounts["exchange2"].Balances["USDC"])
+	suite.Require().Equal(ft2.Callbacks, rp2.Forwardtest.Callbacks)
 }
 
 // TestDeleteForwardtestActivity tests the delete operation.
@@ -152,6 +178,7 @@ func (suite *ForwardtestSuite) TestDeleteForwardtestActivity() {
 				},
 			},
 		},
+		Callbacks: createTestCallbacks(),
 	}
 	_, err := suite.DB.CreateForwardtestActivity(context.Background(), CreateForwardtestActivityParams{
 		Forwardtest: ft,
