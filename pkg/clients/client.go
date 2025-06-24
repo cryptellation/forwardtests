@@ -50,8 +50,8 @@ func (c client) NewForwardtest(
 ) (Forwardtest, error) {
 	res, err := c.raw.CreateForwardtest(ctx, params)
 	return Forwardtest{
-		ID:     res.ID,
-		client: c.raw,
+		ID:        res.ID,
+		rawClient: c.raw,
 	}, err
 }
 
@@ -68,8 +68,8 @@ func (c client) ListForwardtests(
 	forwardtests := make([]Forwardtest, len(res.Forwardtests))
 	for i, ft := range res.Forwardtests {
 		forwardtests[i] = Forwardtest{
-			ID:     ft.ID,
-			client: c.raw,
+			ID:        ft.ID,
+			rawClient: c.raw,
 		}
 	}
 

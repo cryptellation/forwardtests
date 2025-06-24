@@ -14,10 +14,14 @@ type RawClient interface {
 		ctx context.Context,
 		params api.CreateForwardtestWorkflowParams,
 	) (api.CreateForwardtestWorkflowResults, error)
-	GetForwardtestStatus(
+	GetForwardtest(
 		ctx context.Context,
-		params api.GetForwardtestStatusWorkflowParams,
-	) (api.GetForwardtestStatusWorkflowResults, error)
+		params api.GetForwardtestWorkflowParams,
+	) (api.GetForwardtestWorkflowResults, error)
+	GetForwardtestBalance(
+		ctx context.Context,
+		params api.GetForwardtestBalanceWorkflowParams,
+	) (api.GetForwardtestBalanceWorkflowResults, error)
 	ListForwardtests(
 		ctx context.Context,
 		params api.ListForwardtestsWorkflowParams,
@@ -30,10 +34,10 @@ type RawClient interface {
 		ctx context.Context,
 		params api.ListForwardtestAccountsWorkflowParams,
 	) (api.ListForwardtestAccountsWorkflowResults, error)
-	StartForwardtest(
+	RunForwardtest(
 		ctx context.Context,
-		params api.StartForwardtestWorkflowParams,
-	) (api.StartForwardtestWorkflowResults, error)
+		params api.RunForwardtestWorkflowParams,
+	) (api.RunForwardtestWorkflowResults, error)
 	StopForwardtest(
 		ctx context.Context,
 		params api.StopForwardtestWorkflowParams,
@@ -72,22 +76,43 @@ func (c raw) CreateForwardtest(
 	return res, err
 }
 
-func (c raw) GetForwardtestStatus(
+func (c raw) GetForwardtest(
 	ctx context.Context,
-	params api.GetForwardtestStatusWorkflowParams,
-) (api.GetForwardtestStatusWorkflowResults, error) {
+	params api.GetForwardtestWorkflowParams,
+) (api.GetForwardtestWorkflowResults, error) {
 	workflowOptions := temporalclient.StartWorkflowOptions{
 		TaskQueue: api.WorkerTaskQueueName,
 	}
 
 	// Execute workflow
-	exec, err := c.temporal.ExecuteWorkflow(ctx, workflowOptions, api.GetForwardtestStatusWorkflowName, params)
+	exec, err := c.temporal.ExecuteWorkflow(ctx, workflowOptions, api.GetForwardtestWorkflowName, params)
 	if err != nil {
-		return api.GetForwardtestStatusWorkflowResults{}, err
+		return api.GetForwardtestWorkflowResults{}, err
 	}
 
 	// Get result and return
-	var res api.GetForwardtestStatusWorkflowResults
+	var res api.GetForwardtestWorkflowResults
+	err = exec.Get(ctx, &res)
+
+	return res, err
+}
+
+func (c raw) GetForwardtestBalance(
+	ctx context.Context,
+	params api.GetForwardtestBalanceWorkflowParams,
+) (api.GetForwardtestBalanceWorkflowResults, error) {
+	workflowOptions := temporalclient.StartWorkflowOptions{
+		TaskQueue: api.WorkerTaskQueueName,
+	}
+
+	// Execute workflow
+	exec, err := c.temporal.ExecuteWorkflow(ctx, workflowOptions, api.GetForwardtestBalanceWorkflowName, params)
+	if err != nil {
+		return api.GetForwardtestBalanceWorkflowResults{}, err
+	}
+
+	// Get result and return
+	var res api.GetForwardtestBalanceWorkflowResults
 	err = exec.Get(ctx, &res)
 
 	return res, err
@@ -156,22 +181,22 @@ func (c raw) ListForwardtestAccounts(
 	return res, err
 }
 
-func (c raw) StartForwardtest(
+func (c raw) RunForwardtest(
 	ctx context.Context,
-	params api.StartForwardtestWorkflowParams,
-) (api.StartForwardtestWorkflowResults, error) {
+	params api.RunForwardtestWorkflowParams,
+) (api.RunForwardtestWorkflowResults, error) {
 	workflowOptions := temporalclient.StartWorkflowOptions{
 		TaskQueue: api.WorkerTaskQueueName,
 	}
 
 	// Execute workflow
-	exec, err := c.temporal.ExecuteWorkflow(ctx, workflowOptions, api.StartForwardtestWorkflowName, params)
+	exec, err := c.temporal.ExecuteWorkflow(ctx, workflowOptions, api.RunForwardtestWorkflowName, params)
 	if err != nil {
-		return api.StartForwardtestWorkflowResults{}, err
+		return api.RunForwardtestWorkflowResults{}, err
 	}
 
 	// Get result and return
-	var res api.StartForwardtestWorkflowResults
+	var res api.RunForwardtestWorkflowResults
 	err = exec.Get(ctx, &res)
 
 	return res, err

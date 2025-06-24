@@ -7,12 +7,11 @@ import (
 	candlesticksapi "github.com/cryptellation/candlesticks/api"
 	"github.com/cryptellation/candlesticks/pkg/period"
 	"github.com/cryptellation/forwardtests/api"
-	"github.com/cryptellation/forwardtests/pkg/forwardtest"
 	"go.temporal.io/sdk/workflow"
 )
 
 var (
-	// ErrNoActualPrice is the error when there is no actual price when requesting status.
+	// ErrNoActualPrice is the error when there is no actual price when requesting balance.
 	ErrNoActualPrice = fmt.Errorf("no actual price")
 )
 
@@ -21,15 +20,15 @@ const (
 	DefaultBalanceSymbol = "USDT"
 )
 
-// GetForwardtestStatusWorkflow is the workflow to get the forwardtest status.
-func (wf *workflows) GetForwardtestStatusWorkflow(
+// GetForwardtestBalanceWorkflow is the workflow to get the forwardtest balance.
+func (wf *workflows) GetForwardtestBalanceWorkflow(
 	ctx workflow.Context,
-	params api.GetForwardtestStatusWorkflowParams,
-) (api.GetForwardtestStatusWorkflowResults, error) {
+	params api.GetForwardtestBalanceWorkflowParams,
+) (api.GetForwardtestBalanceWorkflowResults, error) {
 	// Read forwardtest from database
 	ft, err := wf.readForwardtestFromDB(ctx, params.ForwardtestID)
 	if err != nil {
-		return api.GetForwardtestStatusWorkflowResults{},
+		return api.GetForwardtestBalanceWorkflowResults{},
 			fmt.Errorf("could not read forwardtest from db: %w", err)
 	}
 
@@ -57,7 +56,7 @@ func (wf *workflows) GetForwardtestStatusWorkflow(
 				TaskQueue: candlesticksapi.WorkerTaskQueueName,
 			})
 			if err != nil {
-				return api.GetForwardtestStatusWorkflowResults{},
+				return api.GetForwardtestBalanceWorkflowResults{},
 					fmt.Errorf("could not get candlesticks from service: %w", err)
 			}
 
@@ -68,9 +67,7 @@ func (wf *workflows) GetForwardtestStatusWorkflow(
 		}
 	}
 
-	return api.GetForwardtestStatusWorkflowResults{
-		Status: forwardtest.Status{
-			Balance: total,
-		},
+	return api.GetForwardtestBalanceWorkflowResults{
+		Balance: total,
 	}, nil
 }

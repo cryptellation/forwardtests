@@ -5,19 +5,32 @@ import (
 	"time"
 
 	forwardtestsapi "github.com/cryptellation/forwardtests/api"
+	"github.com/cryptellation/forwardtests/pkg/forwardtest"
+	"github.com/cryptellation/forwardtests/svc/db"
 	"github.com/cryptellation/runtime"
 	"go.temporal.io/sdk/workflow"
 )
 
-// StartForwardtestWorkflow starts a forwardtest by executing the init callback.
-func (wf *workflows) StartForwardtestWorkflow(
+// RunForwardtestWorkflow runs a forwardtest by executing the init callback.
+func (wf *workflows) RunForwardtestWorkflow(
 	ctx workflow.Context,
-	params forwardtestsapi.StartForwardtestWorkflowParams,
-) (forwardtestsapi.StartForwardtestWorkflowResults, error) {
+	params forwardtestsapi.RunForwardtestWorkflowParams,
+) (forwardtestsapi.RunForwardtestWorkflowResults, error) {
 	// Load forwardtest from database to get callbacks
 	ft, err := wf.readForwardtestFromDB(ctx, params.ForwardtestID)
 	if err != nil {
-		return forwardtestsapi.StartForwardtestWorkflowResults{}, fmt.Errorf("loading forwardtest from database: %w", err)
+		return forwardtestsapi.RunForwardtestWorkflowResults{}, fmt.Errorf("loading forwardtest from database: %w", err)
+	}
+
+	// Update forwardtest status to running
+	ft.Status = forwardtest.StatusRunning
+	err = workflow.ExecuteActivity(
+		workflow.WithActivityOptions(ctx, db.DefaultActivityOptions()),
+		wf.db.UpdateForwardtestActivity, db.UpdateForwardtestActivityParams{
+			Forwardtest: ft,
+		}).Get(ctx, nil)
+	if err != nil {
+		return forwardtestsapi.RunForwardtestWorkflowResults{}, fmt.Errorf("updating forwardtest status to running: %w", err)
 	}
 
 	// Execute the init callback workflow
@@ -35,7 +48,7 @@ func (wf *workflows) StartForwardtestWorkflow(
 		childWorkflowOptions.WorkflowExecutionTimeout = ft.Callbacks.OnInitCallback.ExecutionTimeout
 	}
 
-	var result forwardtestsapi.StartForwardtestWorkflowResults
+	var result forwardtestsapi.RunForwardtestWorkflowResults
 	err = workflow.ExecuteChildWorkflow(
 		workflow.WithChildOptions(ctx, childWorkflowOptions),
 		ft.Callbacks.OnInitCallback.Name,
@@ -50,7 +63,7 @@ func (wf *workflows) StartForwardtestWorkflow(
 	).Get(ctx, &result)
 
 	if err != nil {
-		return forwardtestsapi.StartForwardtestWorkflowResults{}, fmt.Errorf("could not execute init callback: %w", err)
+		return forwardtestsapi.RunForwardtestWorkflowResults{}, fmt.Errorf("could not execute init callback: %w", err)
 	}
 
 	return result, nil

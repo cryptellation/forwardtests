@@ -71,32 +71,47 @@ type (
 	}
 )
 
-// GetForwardtestStatusWorkflowName is the name of the GetForwardtestStatusWorkflow.
-const GetForwardtestStatusWorkflowName = "GetForwardtestStatusWorkflow"
+// GetForwardtestBalanceWorkflowName is the name of the GetForwardtestBalanceWorkflow.
+const GetForwardtestBalanceWorkflowName = "GetForwardtestBalanceWorkflow"
 
 type (
-	// GetForwardtestStatusWorkflowParams is the input for the GetForwardtestStatusWorkflow.
-	GetForwardtestStatusWorkflowParams struct {
+	// GetForwardtestBalanceWorkflowParams is the input for the GetForwardtestBalanceWorkflow.
+	GetForwardtestBalanceWorkflowParams struct {
 		ForwardtestID uuid.UUID
 	}
 
-	// GetForwardtestStatusWorkflowResults is the output for the GetForwardtestStatusWorkflow.
-	GetForwardtestStatusWorkflowResults struct {
-		Status forwardtest.Status
+	// GetForwardtestBalanceWorkflowResults is the output for the GetForwardtestBalanceWorkflow.
+	GetForwardtestBalanceWorkflowResults struct {
+		Balance float64
 	}
 )
 
-// StartForwardtestWorkflowName is the name of the StartForwardtestWorkflow.
-const StartForwardtestWorkflowName = "StartForwardtestWorkflow"
+// GetForwardtestWorkflowName is the name of the GetForwardtestWorkflow.
+const GetForwardtestWorkflowName = "GetForwardtestWorkflow"
 
 type (
-	// StartForwardtestWorkflowParams is the input for the StartForwardtestWorkflow.
-	StartForwardtestWorkflowParams struct {
+	// GetForwardtestWorkflowParams is the input for the GetForwardtestWorkflow.
+	GetForwardtestWorkflowParams struct {
 		ForwardtestID uuid.UUID
 	}
 
-	// StartForwardtestWorkflowResults is the output for the StartForwardtestWorkflow.
-	StartForwardtestWorkflowResults struct{}
+	// GetForwardtestWorkflowResults is the output for the GetForwardtestWorkflow.
+	GetForwardtestWorkflowResults struct {
+		Forwardtest forwardtest.Forwardtest
+	}
+)
+
+// RunForwardtestWorkflowName is the name of the RunForwardtestWorkflow.
+const RunForwardtestWorkflowName = "RunForwardtestWorkflow"
+
+type (
+	// RunForwardtestWorkflowParams is the input for the RunForwardtestWorkflow.
+	RunForwardtestWorkflowParams struct {
+		ForwardtestID uuid.UUID
+	}
+
+	// RunForwardtestWorkflowResults is the output for the RunForwardtestWorkflow.
+	RunForwardtestWorkflowResults struct{}
 )
 
 const (
