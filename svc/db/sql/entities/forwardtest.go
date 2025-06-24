@@ -10,8 +10,9 @@ import (
 
 // ForwardtestData is the data for a forwardtest.
 type ForwardtestData struct {
-	Accounts map[string]Account `json:"accounts"`
-	Orders   []Order            `json:"orders"`
+	Accounts  map[string]Account `json:"accounts"`
+	Orders    []Order            `json:"orders"`
+	Callbacks Callbacks          `json:"callbacks"`
 }
 
 // Forwardtest is the entity for a forwardtest.
@@ -44,14 +45,16 @@ func (ft Forwardtest) ToModel() (forwardtest.Forwardtest, error) {
 		UpdatedAt: ft.UpdatedAt,
 		Accounts:  ToAccountModels(data.Accounts),
 		Orders:    orders,
+		Callbacks: data.Callbacks.ToCallbacksModel(),
 	}, nil
 }
 
 // FromForwardtestModel converts a Forwardtest model to a Forwardtest entity.
 func FromForwardtestModel(ft forwardtest.Forwardtest) (Forwardtest, error) {
 	data := ForwardtestData{
-		Accounts: FromAccountModels(ft.Accounts),
-		Orders:   FromOrderModels(ft.Orders),
+		Accounts:  FromAccountModels(ft.Accounts),
+		Orders:    FromOrderModels(ft.Orders),
+		Callbacks: FromCallbacksModel(ft.Callbacks),
 	}
 
 	dataBytes, err := json.Marshal(data)

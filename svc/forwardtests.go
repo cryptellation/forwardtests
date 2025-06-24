@@ -1,7 +1,7 @@
 package svc
 
 import (
-	"github.com/cryptellation/candlesticks/pkg/clients"
+	candlesicksclients "github.com/cryptellation/candlesticks/pkg/clients"
 	"github.com/cryptellation/forwardtests/api"
 	"github.com/cryptellation/forwardtests/svc/db"
 	"go.temporal.io/sdk/worker"
@@ -36,25 +36,46 @@ type Forwardtests interface {
 		ctx workflow.Context,
 		params api.GetForwardtestStatusWorkflowParams,
 	) (api.GetForwardtestStatusWorkflowResults, error)
+
+	StartForwardtestWorkflow(
+		ctx workflow.Context,
+		params api.StartForwardtestWorkflowParams,
+	) (api.StartForwardtestWorkflowResults, error)
+
+	StopForwardtestWorkflow(
+		ctx workflow.Context,
+		params api.StopForwardtestWorkflowParams,
+	) (api.StopForwardtestWorkflowResults, error)
+
+	SubscribeToPriceWorkflow(
+		ctx workflow.Context,
+		params api.SubscribeToPriceWorkflowParams,
+	) (api.SubscribeToPriceWorkflowResults, error)
 }
 
 var _ Forwardtests = &workflows{}
 
 type workflows struct {
 	db           db.DB
-	candlesticks clients.WfClient
+	candlesticks candlesicksclients.WfClient
 }
 
 // New creates a new Forwardtests instance.
 func New(db db.DB) Forwardtests {
 	return &workflows{
-		candlesticks: clients.NewWfClient(),
+		candlesticks: candlesicksclients.NewWfClient(),
 		db:           db,
 	}
 }
 
 // Register registers the workflows to the worker.
 func (wf *workflows) Register(worker worker.Worker) {
+	// Private workflows
+	worker.RegisterWorkflowWithOptions(wf.forwardNewPriceToForwardTestWorkflow, workflow.RegisterOptions{
+		Name: forwardNewPriceToForwardTestWorkflowName,
+	})
+
+	// Public workflows
 	worker.RegisterWorkflowWithOptions(wf.CreateForwardtestWorkflow, workflow.RegisterOptions{
 		Name: api.CreateForwardtestWorkflowName,
 	})
@@ -69,6 +90,15 @@ func (wf *workflows) Register(worker worker.Worker) {
 	})
 	worker.RegisterWorkflowWithOptions(wf.GetForwardtestStatusWorkflow, workflow.RegisterOptions{
 		Name: api.GetForwardtestStatusWorkflowName,
+	})
+	worker.RegisterWorkflowWithOptions(wf.StartForwardtestWorkflow, workflow.RegisterOptions{
+		Name: api.StartForwardtestWorkflowName,
+	})
+	worker.RegisterWorkflowWithOptions(wf.StopForwardtestWorkflow, workflow.RegisterOptions{
+		Name: api.StopForwardtestWorkflowName,
+	})
+	worker.RegisterWorkflowWithOptions(wf.SubscribeToPriceWorkflow, workflow.RegisterOptions{
+		Name: api.SubscribeToPriceWorkflowName,
 	})
 
 	worker.RegisterWorkflowWithOptions(ServiceInfoWorkflow, workflow.RegisterOptions{

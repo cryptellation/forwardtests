@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/cryptellation/candlesticks/pkg/candlestick"
+	"github.com/cryptellation/runtime"
 	"github.com/cryptellation/runtime/account"
 	"github.com/cryptellation/runtime/order"
 	"github.com/google/uuid"
@@ -26,11 +27,13 @@ type Forwardtest struct {
 	UpdatedAt time.Time
 	Accounts  map[string]account.Account
 	Orders    []order.Order
+	Callbacks runtime.Callbacks
 }
 
 // NewForwardtestParams is the params for the New function.
 type NewForwardtestParams struct {
-	Accounts map[string]account.Account
+	Accounts  map[string]account.Account
+	Callbacks runtime.Callbacks
 }
 
 // Validate validates the NewParams.
@@ -39,15 +42,24 @@ func (np NewForwardtestParams) Validate() error {
 		return ErrEmptyAccounts
 	}
 
+	if err := np.Callbacks.Validate(); err != nil {
+		return fmt.Errorf("validating callbacks: %w", err)
+	}
+
 	return nil
 }
 
 // New creates a new forwardtest.
-func New(params NewForwardtestParams) Forwardtest {
-	return Forwardtest{
-		ID:       uuid.New(),
-		Accounts: params.Accounts,
+func New(params NewForwardtestParams) (Forwardtest, error) {
+	if err := params.Validate(); err != nil {
+		return Forwardtest{}, err
 	}
+
+	return Forwardtest{
+		ID:        uuid.New(),
+		Accounts:  params.Accounts,
+		Callbacks: params.Callbacks,
+	}, nil
 }
 
 // AddOrder adds an order to the forwardtest.

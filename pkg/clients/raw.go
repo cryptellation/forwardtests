@@ -30,6 +30,14 @@ type RawClient interface {
 		ctx context.Context,
 		params api.ListForwardtestAccountsWorkflowParams,
 	) (api.ListForwardtestAccountsWorkflowResults, error)
+	StartForwardtest(
+		ctx context.Context,
+		params api.StartForwardtestWorkflowParams,
+	) (api.StartForwardtestWorkflowResults, error)
+	StopForwardtest(
+		ctx context.Context,
+		params api.StopForwardtestWorkflowParams,
+	) (api.StopForwardtestWorkflowResults, error)
 }
 
 var _ RawClient = raw{}
@@ -143,6 +151,48 @@ func (c raw) ListForwardtestAccounts(
 
 	// Get result and return
 	var res api.ListForwardtestAccountsWorkflowResults
+	err = exec.Get(ctx, &res)
+
+	return res, err
+}
+
+func (c raw) StartForwardtest(
+	ctx context.Context,
+	params api.StartForwardtestWorkflowParams,
+) (api.StartForwardtestWorkflowResults, error) {
+	workflowOptions := temporalclient.StartWorkflowOptions{
+		TaskQueue: api.WorkerTaskQueueName,
+	}
+
+	// Execute workflow
+	exec, err := c.temporal.ExecuteWorkflow(ctx, workflowOptions, api.StartForwardtestWorkflowName, params)
+	if err != nil {
+		return api.StartForwardtestWorkflowResults{}, err
+	}
+
+	// Get result and return
+	var res api.StartForwardtestWorkflowResults
+	err = exec.Get(ctx, &res)
+
+	return res, err
+}
+
+func (c raw) StopForwardtest(
+	ctx context.Context,
+	params api.StopForwardtestWorkflowParams,
+) (api.StopForwardtestWorkflowResults, error) {
+	workflowOptions := temporalclient.StartWorkflowOptions{
+		TaskQueue: api.WorkerTaskQueueName,
+	}
+
+	// Execute workflow
+	exec, err := c.temporal.ExecuteWorkflow(ctx, workflowOptions, api.StopForwardtestWorkflowName, params)
+	if err != nil {
+		return api.StopForwardtestWorkflowResults{}, err
+	}
+
+	// Get result and return
+	var res api.StopForwardtestWorkflowResults
 	err = exec.Get(ctx, &res)
 
 	return res, err

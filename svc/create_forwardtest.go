@@ -14,16 +14,23 @@ func (wf *workflows) CreateForwardtestWorkflow(
 	ctx workflow.Context,
 	params api.CreateForwardtestWorkflowParams,
 ) (api.CreateForwardtestWorkflowResults, error) {
-	payload := forwardtest.NewForwardtestParams{
-		Accounts: params.Accounts,
+	// Validate callbacks
+	if err := params.Callbacks.Validate(); err != nil {
+		return api.CreateForwardtestWorkflowResults{}, fmt.Errorf("validating callbacks: %w", err)
 	}
-	if err := payload.Validate(); err != nil {
-		return api.CreateForwardtestWorkflowResults{}, err
+
+	payload := forwardtest.NewForwardtestParams{
+		Accounts:  params.Accounts,
+		Callbacks: params.Callbacks,
 	}
 
 	// Create new forwardtest and save it to database
-	ft := forwardtest.New(payload)
-	err := workflow.ExecuteActivity(
+	ft, err := forwardtest.New(payload)
+	if err != nil {
+		return api.CreateForwardtestWorkflowResults{}, fmt.Errorf("creating a new forwardtest from request: %w", err)
+	}
+
+	err = workflow.ExecuteActivity(
 		workflow.WithActivityOptions(ctx, db.DefaultActivityOptions()),
 		wf.db.CreateForwardtestActivity, db.CreateForwardtestActivityParams{
 			Forwardtest: ft,
