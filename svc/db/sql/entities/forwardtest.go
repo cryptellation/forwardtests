@@ -13,6 +13,7 @@ type ForwardtestData struct {
 	Accounts  map[string]Account `json:"accounts"`
 	Orders    []Order            `json:"orders"`
 	Callbacks Callbacks          `json:"callbacks"`
+	Status    string             `json:"status"`
 }
 
 // Forwardtest is the entity for a forwardtest.
@@ -40,12 +41,19 @@ func (ft Forwardtest) ToModel() (forwardtest.Forwardtest, error) {
 		return forwardtest.Forwardtest{}, err
 	}
 
+	// Parse status
+	status := forwardtest.Status(data.Status)
+	if err := status.Validate(); err != nil {
+		return forwardtest.Forwardtest{}, err
+	}
+
 	return forwardtest.Forwardtest{
 		ID:        id,
 		UpdatedAt: ft.UpdatedAt,
 		Accounts:  ToAccountModels(data.Accounts),
 		Orders:    orders,
 		Callbacks: data.Callbacks.ToCallbacksModel(),
+		Status:    status,
 	}, nil
 }
 
@@ -55,6 +63,7 @@ func FromForwardtestModel(ft forwardtest.Forwardtest) (Forwardtest, error) {
 		Accounts:  FromAccountModels(ft.Accounts),
 		Orders:    FromOrderModels(ft.Orders),
 		Callbacks: FromCallbacksModel(ft.Callbacks),
+		Status:    ft.Status.String(),
 	}
 
 	dataBytes, err := json.Marshal(data)

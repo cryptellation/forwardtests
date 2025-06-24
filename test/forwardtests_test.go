@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/cryptellation/forwardtests/api"
+	"github.com/cryptellation/forwardtests/pkg/forwardtest"
 	"github.com/cryptellation/runtime"
 	"github.com/cryptellation/runtime/account"
 	"github.com/cryptellation/runtime/order"
@@ -30,7 +31,7 @@ func createTestCallbacks() runtime.Callbacks {
 	}
 }
 
-func (suite *EndToEndSuite) TestGetForwardtestStatus() {
+func (suite *EndToEndSuite) TestGetForwardtestBalance() {
 	// GIVEN a forwardtest
 
 	params := api.CreateForwardtestWorkflowParams{
@@ -46,14 +47,14 @@ func (suite *EndToEndSuite) TestGetForwardtestStatus() {
 	ft, err := suite.client.NewForwardtest(context.Background(), params)
 	suite.Require().NoError(err)
 
-	// WHEN getting the forwardtest status
+	// WHEN getting the forwardtest balance
 
-	status, err := ft.GetStatus(context.Background())
+	balance, err := ft.GetBalance(context.Background())
 	suite.Require().NoError(err)
 
-	// THEN the status is "running"
+	// THEN the balance is correct
 
-	suite.Require().Equal(1000.0, status.Balance)
+	suite.Require().Equal(1000.0, balance)
 }
 
 func (suite *EndToEndSuite) TestListForwardtestStatus() {
@@ -162,4 +163,36 @@ func (suite *EndToEndSuite) TestListForwardtestAccounts() {
 	// Check KuCoin account
 	suite.Require().Equal(2000.0, accounts["kucoin"].Balances["USDT"])
 	suite.Require().Equal(2.0, accounts["kucoin"].Balances["ETH"])
+}
+
+func (suite *EndToEndSuite) TestGetForwardtest() {
+	// GIVEN a forwardtest with accounts and callbacks
+
+	params := api.CreateForwardtestWorkflowParams{
+		Accounts: map[string]account.Account{
+			"binance": {
+				Balances: map[string]float64{
+					"USDT": 1000,
+					"BTC":  0.5,
+				},
+			},
+		},
+		Callbacks: createTestCallbacks(),
+	}
+	ft, err := suite.client.NewForwardtest(context.Background(), params)
+	suite.Require().NoError(err)
+
+	// WHEN getting the forwardtest data
+
+	retrievedFt, err := ft.Get(context.Background())
+	suite.Require().NoError(err)
+
+	// THEN the forwardtest data is retrieved correctly
+
+	suite.Require().Equal(ft.ID, retrievedFt.ID)
+	suite.Require().Len(retrievedFt.Accounts, 1)
+	suite.Require().Equal(1000.0, retrievedFt.Accounts["binance"].Balances["USDT"])
+	suite.Require().Equal(0.5, retrievedFt.Accounts["binance"].Balances["BTC"])
+	suite.Require().Equal(createTestCallbacks(), retrievedFt.Callbacks)
+	suite.Require().Equal(forwardtest.StatusReady, retrievedFt.Status)
 }

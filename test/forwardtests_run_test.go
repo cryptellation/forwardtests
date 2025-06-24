@@ -9,6 +9,7 @@ import (
 
 	"github.com/cryptellation/forwardtests/api"
 	"github.com/cryptellation/forwardtests/pkg/clients"
+	"github.com/cryptellation/forwardtests/pkg/forwardtest"
 	"github.com/cryptellation/runtime"
 	"github.com/cryptellation/runtime/account"
 	"github.com/google/uuid"
@@ -36,6 +37,9 @@ func (r *testRunner) Name() string {
 func (r *testRunner) OnInit(ctx workflow.Context, params runtime.OnInitCallbackWorkflowParams) error {
 	checkForwardtestRunContext(r.Suite, params.Context, r.ForwardtestID)
 
+	// Check that forwardtest status is "running" during OnInit
+	r.checkForwardtestStatus(ctx, forwardtest.StatusRunning)
+
 	// Subscribe to price
 	_, err := r.WfClient.SubscribeToPrice(ctx, api.SubscribeToPriceWorkflowParams{
 		ForwardtestID: r.ForwardtestID,
@@ -48,8 +52,11 @@ func (r *testRunner) OnInit(ctx workflow.Context, params runtime.OnInitCallbackW
 	return err
 }
 
-func (r *testRunner) OnNewPrices(_ workflow.Context, params runtime.OnNewPricesCallbackWorkflowParams) error {
+func (r *testRunner) OnNewPrices(ctx workflow.Context, params runtime.OnNewPricesCallbackWorkflowParams) error {
 	checkForwardtestRunContext(r.Suite, params.Context, r.ForwardtestID)
+
+	// Check that forwardtest status is "running" during OnNewPrices
+	r.checkForwardtestStatus(ctx, forwardtest.StatusRunning)
 
 	// TODO(#6): test order passing in OnNewPrices
 
@@ -57,11 +64,23 @@ func (r *testRunner) OnNewPrices(_ workflow.Context, params runtime.OnNewPricesC
 	return nil
 }
 
-func (r *testRunner) OnExit(_ workflow.Context, params runtime.OnExitCallbackWorkflowParams) error {
+func (r *testRunner) OnExit(ctx workflow.Context, params runtime.OnExitCallbackWorkflowParams) error {
 	checkForwardtestRunContext(r.Suite, params.Context, r.ForwardtestID)
+
+	// Check that forwardtest status is "finished" during OnExit
+	r.checkForwardtestStatus(ctx, forwardtest.StatusFinished)
 
 	r.OnExitCalls++
 	return nil
+}
+
+// checkForwardtestStatus verifies that the forwardtest has the expected status.
+func (r *testRunner) checkForwardtestStatus(ctx workflow.Context, expectedStatus forwardtest.Status) {
+	result, err := r.WfClient.GetForwardtest(ctx, api.GetForwardtestWorkflowParams{
+		ForwardtestID: r.ForwardtestID,
+	})
+	r.Suite.Require().NoError(err)
+	r.Suite.Require().Equal(expectedStatus, result.Forwardtest.Status)
 }
 
 func (suite *EndToEndSuite) TestForwardtestRun() {
@@ -120,7 +139,7 @@ func (suite *EndToEndSuite) TestForwardtestRun() {
 
 	suite.Require().Eventually(func() bool {
 		return r.OnNewPricesCalls >= 2
-	}, time.Second*10, time.Millisecond*100)
+	}, 10*time.Minute, time.Millisecond*100)
 
 	// WHEN stopping the forwardtest
 	err = forwardtest.Stop(context.Background())

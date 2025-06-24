@@ -12,14 +12,14 @@ import (
 
 // Forwardtest is a local representation of a forwardtest running on the Cryptellation API.
 type Forwardtest struct {
-	ID     uuid.UUID
-	client RawClient
+	ID        uuid.UUID
+	rawClient RawClient
 }
 
 // Run runs the forwardtest with the given bot.
 func (ft *Forwardtest) Run(ctx context.Context) error {
-	// Start forwardtest
-	_, err := ft.client.StartForwardtest(ctx, api.StartForwardtestWorkflowParams{
+	// Run forwardtest
+	_, err := ft.rawClient.RunForwardtest(ctx, api.RunForwardtestWorkflowParams{
 		ForwardtestID: ft.ID,
 	})
 
@@ -31,7 +31,7 @@ func (ft Forwardtest) CreateOrder(
 	ctx context.Context,
 	order order.Order,
 ) (api.CreateForwardtestOrderWorkflowResults, error) {
-	return ft.client.CreateForwardtestOrder(ctx, api.CreateForwardtestOrderWorkflowParams{
+	return ft.rawClient.CreateForwardtestOrder(ctx, api.CreateForwardtestOrderWorkflowParams{
 		ForwardtestID: ft.ID,
 		Order:         order,
 	})
@@ -41,7 +41,7 @@ func (ft Forwardtest) CreateOrder(
 func (ft Forwardtest) ListAccounts(
 	ctx context.Context,
 ) (map[string]account.Account, error) {
-	res, err := ft.client.ListForwardtestAccounts(ctx, api.ListForwardtestAccountsWorkflowParams{
+	res, err := ft.rawClient.ListForwardtestAccounts(ctx, api.ListForwardtestAccountsWorkflowParams{
 		ForwardtestID: ft.ID,
 	})
 	if err != nil {
@@ -51,23 +51,35 @@ func (ft Forwardtest) ListAccounts(
 	return res.Accounts, nil
 }
 
-// GetStatus gets the status of the forwardtest.
-func (ft Forwardtest) GetStatus(
-	ctx context.Context,
-) (forwardtest.Status, error) {
-	res, err := ft.client.GetForwardtestStatus(ctx, api.GetForwardtestStatusWorkflowParams{
+// Get retrieves the forwardtest data from the database.
+func (ft Forwardtest) Get(ctx context.Context) (forwardtest.Forwardtest, error) {
+	res, err := ft.rawClient.GetForwardtest(ctx, api.GetForwardtestWorkflowParams{
 		ForwardtestID: ft.ID,
 	})
 	if err != nil {
-		return forwardtest.Status{}, err
+		return forwardtest.Forwardtest{}, err
 	}
 
-	return res.Status, nil
+	return res.Forwardtest, nil
+}
+
+// GetBalance gets the balance of the forwardtest.
+func (ft Forwardtest) GetBalance(
+	ctx context.Context,
+) (float64, error) {
+	res, err := ft.rawClient.GetForwardtestBalance(ctx, api.GetForwardtestBalanceWorkflowParams{
+		ForwardtestID: ft.ID,
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	return res.Balance, nil
 }
 
 // Stop stops the forwardtest by executing the exit callback.
 func (ft Forwardtest) Stop(ctx context.Context) error {
-	_, err := ft.client.StopForwardtest(ctx, api.StopForwardtestWorkflowParams{
+	_, err := ft.rawClient.StopForwardtest(ctx, api.StopForwardtestWorkflowParams{
 		ForwardtestID: ft.ID,
 	})
 

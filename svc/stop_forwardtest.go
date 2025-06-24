@@ -5,6 +5,8 @@ import (
 	"time"
 
 	forwardtestsapi "github.com/cryptellation/forwardtests/api"
+	"github.com/cryptellation/forwardtests/pkg/forwardtest"
+	"github.com/cryptellation/forwardtests/svc/db"
 	"github.com/cryptellation/runtime"
 	"go.temporal.io/sdk/workflow"
 )
@@ -18,6 +20,18 @@ func (wf *workflows) StopForwardtestWorkflow(
 	ft, err := wf.readForwardtestFromDB(ctx, params.ForwardtestID)
 	if err != nil {
 		return forwardtestsapi.StopForwardtestWorkflowResults{}, fmt.Errorf("loading forwardtest from database: %w", err)
+	}
+
+	// Update forwardtest status to finished
+	ft.Status = forwardtest.StatusFinished
+	err = workflow.ExecuteActivity(
+		workflow.WithActivityOptions(ctx, db.DefaultActivityOptions()),
+		wf.db.UpdateForwardtestActivity, db.UpdateForwardtestActivityParams{
+			Forwardtest: ft,
+		}).Get(ctx, nil)
+	if err != nil {
+		return forwardtestsapi.StopForwardtestWorkflowResults{},
+			fmt.Errorf("updating forwardtest status to finished: %w", err)
 	}
 
 	// Execute the exit callback workflow

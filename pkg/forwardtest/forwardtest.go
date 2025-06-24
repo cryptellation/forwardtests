@@ -28,6 +28,7 @@ type Forwardtest struct {
 	Accounts  map[string]account.Account
 	Orders    []order.Order
 	Callbacks runtime.Callbacks
+	Status    Status
 }
 
 // NewForwardtestParams is the params for the New function.
@@ -59,6 +60,7 @@ func New(params NewForwardtestParams) (Forwardtest, error) {
 		ID:        uuid.New(),
 		Accounts:  params.Accounts,
 		Callbacks: params.Callbacks,
+		Status:    StatusReady,
 	}, nil
 }
 

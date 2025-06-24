@@ -1,9 +1,10 @@
 package svc
 
 import (
-	candlesicksclients "github.com/cryptellation/candlesticks/pkg/clients"
+	candlesticksclients "github.com/cryptellation/candlesticks/pkg/clients"
 	"github.com/cryptellation/forwardtests/api"
 	"github.com/cryptellation/forwardtests/svc/db"
+	tickclients "github.com/cryptellation/ticks/pkg/clients"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
 )
@@ -32,15 +33,20 @@ type Forwardtests interface {
 		params api.ListForwardtestAccountsWorkflowParams,
 	) (api.ListForwardtestAccountsWorkflowResults, error)
 
-	GetForwardtestStatusWorkflow(
+	GetForwardtestBalanceWorkflow(
 		ctx workflow.Context,
-		params api.GetForwardtestStatusWorkflowParams,
-	) (api.GetForwardtestStatusWorkflowResults, error)
+		params api.GetForwardtestBalanceWorkflowParams,
+	) (api.GetForwardtestBalanceWorkflowResults, error)
 
-	StartForwardtestWorkflow(
+	GetForwardtestWorkflow(
 		ctx workflow.Context,
-		params api.StartForwardtestWorkflowParams,
-	) (api.StartForwardtestWorkflowResults, error)
+		params api.GetForwardtestWorkflowParams,
+	) (api.GetForwardtestWorkflowResults, error)
+
+	RunForwardtestWorkflow(
+		ctx workflow.Context,
+		params api.RunForwardtestWorkflowParams,
+	) (api.RunForwardtestWorkflowResults, error)
 
 	StopForwardtestWorkflow(
 		ctx workflow.Context,
@@ -57,13 +63,15 @@ var _ Forwardtests = &workflows{}
 
 type workflows struct {
 	db           db.DB
-	candlesticks candlesicksclients.WfClient
+	candlesticks candlesticksclients.WfClient
+	ticks        tickclients.WfClient
 }
 
 // New creates a new Forwardtests instance.
 func New(db db.DB) Forwardtests {
 	return &workflows{
-		candlesticks: candlesicksclients.NewWfClient(),
+		candlesticks: candlesticksclients.NewWfClient(),
+		ticks:        tickclients.NewWfClient(),
 		db:           db,
 	}
 }
@@ -88,11 +96,14 @@ func (wf *workflows) Register(worker worker.Worker) {
 	worker.RegisterWorkflowWithOptions(wf.ListForwardtestAccountsWorkflow, workflow.RegisterOptions{
 		Name: api.ListForwardtestAccountsWorkflowName,
 	})
-	worker.RegisterWorkflowWithOptions(wf.GetForwardtestStatusWorkflow, workflow.RegisterOptions{
-		Name: api.GetForwardtestStatusWorkflowName,
+	worker.RegisterWorkflowWithOptions(wf.GetForwardtestBalanceWorkflow, workflow.RegisterOptions{
+		Name: api.GetForwardtestBalanceWorkflowName,
 	})
-	worker.RegisterWorkflowWithOptions(wf.StartForwardtestWorkflow, workflow.RegisterOptions{
-		Name: api.StartForwardtestWorkflowName,
+	worker.RegisterWorkflowWithOptions(wf.GetForwardtestWorkflow, workflow.RegisterOptions{
+		Name: api.GetForwardtestWorkflowName,
+	})
+	worker.RegisterWorkflowWithOptions(wf.RunForwardtestWorkflow, workflow.RegisterOptions{
+		Name: api.RunForwardtestWorkflowName,
 	})
 	worker.RegisterWorkflowWithOptions(wf.StopForwardtestWorkflow, workflow.RegisterOptions{
 		Name: api.StopForwardtestWorkflowName,
