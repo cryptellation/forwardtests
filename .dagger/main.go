@@ -88,9 +88,9 @@ func (mod *Forwardtests) UnitTests(sourceDir *dagger.Directory) *dagger.Containe
 		})
 }
 
-// integrationDBTests runs the integration tests for the database against a fresh Postgres container.
-func (mod *Forwardtests) integrationDBTests(ctx context.Context, sourceDir *dagger.Directory) *dagger.Container {
-	pg := PostgresContainer(ctx, dag, sourceDir)
+// dbIntegrationTests runs the integration tests for the database against a fresh Postgres container.
+func (mod *Forwardtests) dbIntegrationTests(ctx context.Context, sourceDir *dagger.Directory) *dagger.Container {
+	pg := PostgresContainer(dag, sourceDir)
 	dsn := "host=postgres user=cryptellation password=cryptellation dbname=forwardtests sslmode=disable"
 	c := dag.Container().
 		From("golang:"+goVersion()+"-alpine").
@@ -103,7 +103,7 @@ func (mod *Forwardtests) integrationDBTests(ctx context.Context, sourceDir *dagg
 // IntegrationTests returns all integration test containers for this service.
 func (mod *Forwardtests) IntegrationTests(ctx context.Context, sourceDir *dagger.Directory) []*dagger.Container {
 	return []*dagger.Container{
-		mod.integrationDBTests(ctx, sourceDir),
+		mod.dbIntegrationTests(ctx, sourceDir),
 	}
 }
 
