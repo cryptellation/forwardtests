@@ -8,7 +8,7 @@ require (
 	github.com/cryptellation/dbmigrator v1.0.1
 	github.com/cryptellation/health v1.1.1
 	github.com/cryptellation/runtime v1.7.0
-	github.com/cryptellation/version v1.1.0
+	github.com/cryptellation/version v1.4.0
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/jmoiron/sqlx v1.4.0
