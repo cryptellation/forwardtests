@@ -25,6 +25,8 @@ github.com/cryptellation/runtime v1.5.0 h1:bOQRYVBwFg8r+ciRLmYm9ATsmy18T5cXg+Ohj
 github.com/cryptellation/runtime v1.5.0/go.mod h1:EFaH6DdIGe4eEPsapFKK5uIJZNII7MIGT2eWjl09RYU=
 github.com/cryptellation/runtime v1.7.0 h1:8qCi8nBAsjQyF1a2makR1JIHuI9jSSJBWGS1NRoRfWE=
 github.com/cryptellation/runtime v1.7.0/go.mod h1:EFaH6DdIGe4eEPsapFKK5uIJZNII7MIGT2eWjl09RYU=
+github.com/cryptellation/runtime v1.8.0 h1:N0271FOlLh559BPSMTFMz+odDONbKnNZ6Yt1B4yHFos=
+github.com/cryptellation/runtime v1.8.0/go.mod h1:EFaH6DdIGe4eEPsapFKK5uIJZNII7MIGT2eWjl09RYU=
 github.com/cryptellation/ticks v1.0.1 h1:ejJqbfBPY72SaS+aQlGAfBEc4lDWY1zf44GLt1wQFeE=
 github.com/cryptellation/ticks v1.0.1/go.mod h1:sJ8aUr7QDX3YmlCrEHl9clvepTgzjaV6k8e1kdFIuqw=
 github.com/cryptellation/ticks v1.0.3 h1:i4ZMyFT4N1+IO/kKBvTnl3eq6qKIw3ezHpBvBvSQoWA=
