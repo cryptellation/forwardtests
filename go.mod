@@ -7,7 +7,7 @@ require (
 	github.com/cryptellation/candlesticks v1.0.4
 	github.com/cryptellation/dbmigrator v1.0.1
 	github.com/cryptellation/health v1.1.1
-	github.com/cryptellation/runtime v1.7.0
+	github.com/cryptellation/runtime v1.8.1
 	github.com/cryptellation/version v1.1.0
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
@@ -23,7 +23,7 @@ require (
 
 require (
 	github.com/cryptellation/ticks v1.2.1 // indirect
-	github.com/cryptellation/timeseries v1.1.0 // indirect
+	github.com/cryptellation/timeseries v1.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
